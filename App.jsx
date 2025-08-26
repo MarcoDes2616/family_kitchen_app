@@ -1,12 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
-import RecipeApp from './src/screens/RecipeApp';
 
 export default function App() {
 
   return (
     <View style={styles.container}>
-      <RecipeApp />
+      <Text>Hello, World!</Text>
       <StatusBar style="auto" />
     </View>
   );
