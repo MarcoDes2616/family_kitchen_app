@@ -8,7 +8,7 @@ const useChatStorage = () => {
     updateValue: updateChatHistory,
     loading,
     error
-  } = useLocalStorage('gemini_chat_history', []);
+  } = useLocalStorage('ai_chat_history', []);
 
   // Añadir un nuevo mensaje al historial
   const addMessage = useCallback(async (message) => {
