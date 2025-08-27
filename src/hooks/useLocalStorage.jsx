@@ -73,12 +73,9 @@ const getStorage = useCallback(async () => {
       const allData = {};
       
       for (const key of keys) {
-        console.log(key);
-        
         const value = await getKey(key);
         allData[key] = value || null;
       }
-      
       return allData;
     }
   } catch (error) {

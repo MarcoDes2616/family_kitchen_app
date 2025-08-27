@@ -24,12 +24,11 @@ export const AppProvider = ({ children }) => {
   const [language, setLanguage] = useState(defaultLan);
   
   // Usar el hook de almacenamiento local
-  const { saveLocal, deleteLocal, getKey, getAllKeys } = useLocalStorage();
+  const { saveLocal, deleteLocal, getKey, getStorage } = useLocalStorage();
 
   // Verificar si ya existe un token al iniciar la app
   useEffect(() => {
-    checkExistingAuth();
-
+    // checkExistingAuth();
   }, []);
 
   const handleChangeLanguage = (newLanguage) => {
