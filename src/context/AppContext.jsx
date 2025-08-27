@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axiosInstance from '../services/axios';
 import { defaultsContent } from '../utils/defaultsContent';
-import useLocalStorage from '../hooks/useLocalStorage'; // Asegúrate de tener la ruta correcta
+import useLocalStorage from '../hooks/useLocalStorage';
+import { lan } from '../utils/lenguages';
 
-const { storageKeys, systemPrompt } = defaultsContent;
+const { storageKeys, language : defaultLan } = defaultsContent;
 
 const AppContext = createContext();
 
@@ -20,6 +21,7 @@ export const AppProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [initialPromptSent, setInitialPromptSent] = useState(false);
+  const [language, setLanguage] = useState(defaultLan);
   
   // Usar el hook de almacenamiento local
   const { saveLocal, deleteLocal, getKey, getAllKeys } = useLocalStorage();
@@ -27,8 +29,13 @@ export const AppProvider = ({ children }) => {
   // Verificar si ya existe un token al iniciar la app
   useEffect(() => {
     checkExistingAuth();
-    console.log(defaultsContent.systemPrompt);
+
   }, []);
+
+  const handleChangeLanguage = (newLanguage) => {
+    setLanguage(newLanguage);
+  };
+
 
   const checkExistingAuth = async () => {
     try {
@@ -78,7 +85,7 @@ export const AppProvider = ({ children }) => {
     try {
       const prompt = {
         role: 'system',
-        content: systemPrompt
+        content: lan[language]?.systemPrompt
       };
 
       await axiosInstance.post('/recipe/request', {
@@ -133,7 +140,8 @@ export const AppProvider = ({ children }) => {
     initialPromptSent,
     updateUser,
     logout,
-    generateTemporaryUser
+    generateTemporaryUser,
+    handleChangeLanguage
   };
 
   return (
