@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   View, 
   StyleSheet, 
   Text
 } from 'react-native';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 const FloatingButton = () => {
+  const [keys, setKeys] = useState([]);
 
+  const {getAllkeys} = useLocalStorage();
+  useEffect(() => {
+    const fetchKeys = async () => {
+      const keys = await getAllkeys();
+      setKeys(keys);
+    };
+    fetchKeys();
+  }, []);
 
   return (
     <View style={styles.container}>

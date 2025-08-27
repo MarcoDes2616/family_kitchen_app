@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../services/axios';
+import { defaultsContent } from '../utils/defaultsContent';
+import useLocalStorage from '../hooks/useLocalStorage'; // Asegúrate de tener la ruta correcta
+
+const { storageKeys, systemPrompt } = defaultsContent;
 
 const AppContext = createContext();
 
@@ -17,20 +20,24 @@ export const AppProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [initialPromptSent, setInitialPromptSent] = useState(false);
+  
+  // Usar el hook de almacenamiento local
+  const { saveLocal, deleteLocal, getKey, getAllKeys } = useLocalStorage();
 
   // Verificar si ya existe un token al iniciar la app
   useEffect(() => {
     checkExistingAuth();
+    console.log(defaultsContent.systemPrompt);
   }, []);
 
   const checkExistingAuth = async () => {
     try {
-      const storedToken = await AsyncStorage.getItem('user_token');
-      const storedUser = await AsyncStorage.getItem('user_data');
+      const storedToken = await getKey(storageKeys.userToken);
+      const storedUser = await getKey(storageKeys.userData);
       
       if (storedToken && storedUser) {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        setUser(storedUser);
       } else {
         await generateTemporaryUser();
       }
@@ -53,11 +60,11 @@ export const AppProvider = ({ children }) => {
 
       const { user: newUser, token: newToken } = response.data;
       
-      // Guardar en estado y async storage
+      // Guardar en estado y almacenamiento local
       setUser(newUser);
       setToken(newToken);
-      await AsyncStorage.setItem('user_token', newToken);
-      await AsyncStorage.setItem('user_data', JSON.stringify(newUser));
+      await saveLocal(storageKeys.userToken, newToken);
+      await saveLocal(storageKeys.userData, newUser);
       await sendInitialPrompt();
     } catch (error) {
       console.error('Error generating temporary user:', error);
@@ -69,29 +76,17 @@ export const AppProvider = ({ children }) => {
 
   const sendInitialPrompt = async () => {
     try {
-      const systemPrompt = {
+      const prompt = {
         role: 'system',
-        content: `Eres un asistente útil que genera recetas basadas en los ingredientes proporcionados por el usuario. 
-        Debes comenzar saludando amablemente y presentándote como un asistente de recetas. 
-        Luego, pregunta qué ingredientes tiene disponible el usuario en su hogar.
-        
-        Cuando el usuario te proporcione una lista de ingredientes, debes:
-        1. Crear 2-3 recetas detalladas y sencillas
-        2. Cada receta debe incluir un título atractivo
-        3. Una lista clara de ingredientes necesarios
-        4. Pasos de preparación fáciles de seguir
-        5. Tiempo aproximado de preparación
-        6. Dificultad (baja, media, alta)
-        
-        Sé creativo pero mantén las recetas realistas y fáciles de hacer en casa.`
+        content: systemPrompt
       };
 
       await axiosInstance.post('/recipe/request', {
-        messages: [systemPrompt]
+        messages: [prompt]
       });
       
       setInitialPromptSent(true);
-      await AsyncStorage.setItem('initial_prompt_sent', 'true');
+      await saveLocal(storageKeys.initialPromptSent, true);
     } catch (error) {
       console.error('Error sending initial prompt:', error);
     }
@@ -103,7 +98,7 @@ export const AppProvider = ({ children }) => {
       const updatedUser = response.data;
       
       setUser(updatedUser);
-      await AsyncStorage.setItem('user_data', JSON.stringify(updatedUser));
+      await saveLocal(storageKeys.userData, updatedUser);
       
       return updatedUser;
     } catch (error) {
@@ -114,9 +109,10 @@ export const AppProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Limpiar storage
-      await AsyncStorage.removeItem('user_token');
-      await AsyncStorage.removeItem('user_data');
+      // Limpiar almacenamiento local usando las keys específicas
+      await deleteLocal(storageKeys.userToken);
+      await deleteLocal(storageKeys.userData);
+      await deleteLocal(storageKeys.initialPromptSent);
       
       // Limpiar estado
       setUser(null);

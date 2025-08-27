@@ -1,71 +1,84 @@
-import { useCallback } from 'react';
-import useLocalStorage from './useLocalStorage';
+import { useState, useEffect, useCallback } from 'react';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const useChatStorage = () => {
-  const {
-    storedValue: chatHistory,
-    setValue: setChatHistory,
-    updateValue: updateChatHistory,
-    loading,
-    error
-  } = useLocalStorage('ai_chat_history', []);
+const useLocalStorage = () => {
+  const [plataforma, setPlataforma] = useState(null);
 
-  // Añadir un nuevo mensaje al historial
-  const addMessage = useCallback(async (message) => {
-    const newMessage = {
-      ...message,
-      timestamp: Date.now(),
-      id: Math.random().toString(36).substr(2, 9) // ID único
-    };
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      setPlataforma('web');
+    } else {
+      setPlataforma('native');
+    }
+  }, []);
 
-    const updatedHistory = [...chatHistory, newMessage];
-    await setChatHistory(updatedHistory);
-    return newMessage;
-  }, [chatHistory, setChatHistory]);
+  const saveLocal = useCallback(async (clave, valor) => {
+    try {
+      if (plataforma === 'web') {
+        localStorage.setItem(clave, JSON.stringify(valor));
+      } else {
+        await AsyncStorage.setItem(clave, JSON.stringify(valor));
+      }
+      return true;
+    } catch (error) {
+      console.error('Error guardando:', error);
+      return false;
+    }
+  }, [plataforma]);
 
-  // Añadir un mensaje del usuario
-  const addUserMessage = useCallback(async (content) => {
-    return addMessage({
-      role: 'user',
-      content
-    });
-  }, [addMessage]);
+  const deleteLocal = useCallback(async (clave) => {
+    try {
+      if (plataforma === 'web') {
+        localStorage.removeItem(clave);
+      } else {
+        await AsyncStorage.removeItem(clave);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error borrando:', error);
+      return false;
+    }
+  }, [plataforma]);
 
-  // Añadir un mensaje de la IA
-  const addAssistantMessage = useCallback(async (content) => {
-    return addMessage({
-      role: 'assistant',
-      content
-    });
-  }, [addMessage]);
+  const getAllKeys = useCallback(async () => {
+    try {
+      if (plataforma === 'web') {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          keys.push(localStorage.key(i));
+        }
+        return keys;
+      } else {
+        return await AsyncStorage.getAllKeys();
+      }
+    } catch (error) {
+      console.error('Error obteniendo keys:', error);
+      return [];
+    }
+  }, [plataforma]);
 
-  // Limpiar el historial de chat
-  const clearChat = useCallback(async () => {
-    await setChatHistory([]);
-  }, [setChatHistory]);
-
-  // Obtener el último mensaje
-  const getLastMessage = useCallback(() => {
-    if (chatHistory.length === 0) return null;
-    return chatHistory[chatHistory.length - 1];
-  }, [chatHistory]);
-
-  // Obtener mensajes desde una fecha específica
-  const getMessagesSince = useCallback((timestamp) => {
-    return chatHistory.filter(message => message.timestamp >= timestamp);
-  }, [chatHistory]);
+   const getKey = useCallback(async (clave) => {
+    try {
+      if (plataforma === 'web') {
+        const valor = localStorage.getItem(clave);
+        return valor ? JSON.parse(valor) : null;
+      } else {
+        const valor = await AsyncStorage.getItem(clave);
+        return valor ? JSON.parse(valor) : null;
+      }
+    } catch (error) {
+      console.error('Error obteniendo key:', error);
+      return null;
+    }
+  }, [plataforma]);
 
   return {
-    chatHistory,
-    addMessage,
-    addUserMessage,
-    addAssistantMessage,
-    clearChat,
-    getLastMessage,
-    getMessagesSince,
-    loading,
-    error
+    saveLocal,
+    deleteLocal,
+    getAllKeys,
+    getKey
   };
 };
 
-export default useChatStorage;
+export default useLocalStorage;
