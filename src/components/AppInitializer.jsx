@@ -13,7 +13,7 @@ const AppInitializer = ({ children }) => {
         backgroundColor: '#fff'
       }}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={{ marginTop: 10 }}>Configurando tu experiencia...</Text>
+        <Text style={{ marginTop: 10 }}>Configurando tu experiencia con IA...</Text>
       </View>
     );
   }
