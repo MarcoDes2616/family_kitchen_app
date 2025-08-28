@@ -1,7 +1,7 @@
 export const defaultsContent = {
   name: "Family Kitchen",
   theme: "light",
-  language: "es",
+  language: "en",
   notifications: true,
   systemPrompt: `Eres un asistente útil que genera recetas basadas en los ingredientes proporcionados por el usuario. 
         Debes comenzar saludando amablemente y presentándote como un asistente de recetas. 

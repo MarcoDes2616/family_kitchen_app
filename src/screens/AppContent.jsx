@@ -39,7 +39,7 @@ const AppContent = () => {
 
   return (
   <ImageBackground 
-    source={require('../../assets/bg_1.jpg')} // o import bg from '../../assets/bg_1.jpg'
+    source={bg}
     style={[getSafeAreaStyles(), styles.container]}
     resizeMode="cover"
   >
@@ -63,8 +63,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundImage: url('../../assets/bg_1.jpg'),
-    // backgroundColor: "#000"
   },
 });
 

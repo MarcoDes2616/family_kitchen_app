@@ -15,8 +15,6 @@ const FloatingButton = () => {
     fetchKeys();
   }, []);
 
-  console.log(keys);
-
   return (
     <View style={styles.container}>
       {keys.user_token && (
