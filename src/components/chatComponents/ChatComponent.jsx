@@ -10,7 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import backgroundImage from '../../../assets/bg_init.png'; // Asegúrate de tener una imagen de fondo adecuada
+import { Ionicons } from '@expo/vector-icons';
+import backgroundImage from '../../../assets/bg_init.jpg'; // Asegúrate de tener una imagen de fondo adecuada
 
 const ChatComponent = ({ 
   messages, 
@@ -36,44 +37,48 @@ const ChatComponent = ({
     }
   };
 
-  const renderMessage = ({ item }) => {
-    const isSara = item.role === 'sara';
-    
-    return (
+const renderMessage = ({ item }) => {
+  const isSara = item.role === 'sara';
+  
+  return (
+    <View style={[
+      styles.messageContainer,
+      isSara ? styles.saraMessage : styles.userMessage
+    ]}>
       <View style={[
-        styles.messageContainer,
-        isSara ? styles.saraMessage : styles.userMessage
+        styles.messageBubble,
+        isSara ? styles.saraBubble : styles.userBubble
       ]}>
-        <View style={[
-          styles.messageBubble,
-          isSara ? styles.saraBubble : styles.userBubble
+        <Text style={[
+          styles.messageText,
+          isSara ? styles.saraText : styles.userText
         ]}>
-          <Text style={[
-            styles.messageText,
-            isSara ? styles.saraText : styles.userText
-          ]}>
-            {item.content}
-          </Text>
-        </View>
-        <Text style={styles.timestamp}>
-          {new Date(item.timestamp).toLocaleTimeString()}
+          {item.content}
         </Text>
       </View>
-    );
-  };
+      <Text style={styles.timestamp}>
+        {new Date(item.timestamp).toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })}
+      </Text>
+    </View>
+  );
+};
 
-  return (
-    <View style={styles.container}>
-      {/* Fondo de Sara */}
-      {backgroundImage && (
-        <Image 
-          source={backgroundImage} 
-          style={styles.backgroundImage} 
-          resizeMode="contain"
-        />
-      )}
-      
-      {/* Lista de mensajes */}
+return (
+  <View style={styles.container}>
+    {/* Fondo de Sara con gradiente */}
+    {backgroundImage && (
+      <Image 
+        source={backgroundImage} 
+        style={styles.backgroundImage} 
+        resizeMode="contain"
+      />
+    )}
+    
+    {/* Lista de mensajes con altura definida */}
+    <View style={styles.messagesContainer}>
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -81,28 +86,38 @@ const ChatComponent = ({
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.messagesList}
         showsVerticalScrollIndicator={false}
+        style={styles.flatList}
       />
+    </View>
 
-      {/* Indicador de typing */}
-      {isTyping && (
-        <View style={styles.typingContainer}>
-          <Text style={styles.typingText}>Sara está escribiendo...</Text>
+    {/* Indicador de typing */}
+    {isTyping && (
+      <View style={styles.typingContainer}>
+        <View style={styles.typingDots}>
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+          <View style={styles.dot} />
         </View>
-      )}
+        <Text style={styles.typingText}>Sara está escribiendo...</Text>
+      </View>
+    )}
 
-      {/* Input de mensaje */}
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.inputContainer}
-      >
+    {/* Input de mensaje estilo WhatsApp */}
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.inputContainer}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <View style={styles.inputWrapper}>
         <TextInput
           style={styles.textInput}
           value={inputText}
           onChangeText={setInputText}
-          placeholder="Escribe tu respuesta..."
+          placeholder="Escribe un mensaje..."
           placeholderTextColor="#999"
           multiline
-          maxLength={500}
+          maxLength={1000}
+          numberOfLines={4}
         />
         <TouchableOpacity 
           style={[
@@ -112,32 +127,44 @@ const ChatComponent = ({
           onPress={handleSend}
           disabled={!inputText.trim()}
         >
-          <Text style={styles.sendButtonText}>Enviar</Text>
+          <Ionicons 
+            name="send" 
+            size={24} 
+            color={!inputText.trim() ? "#ccc" : "#007AFF"} 
+          />
         </TouchableOpacity>
-      </KeyboardAvoidingView>
-    </View>
-  );
-};
+      </View>
+    </KeyboardAvoidingView>
+  </View>
+);
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#111827',
   },
   backgroundImage: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    opacity: 0.1,
+    opacity: 0.05,
     zIndex: -1,
+  },
+  messagesContainer: {
+    flex: 1,
+    maxHeight: '78%', // Altura definida para la ventana de chat
+  },
+  flatList: {
+    flex: 1,
   },
   messagesList: {
     padding: 16,
-    paddingBottom: 80,
+    paddingBottom: 20,
   },
   messageContainer: {
     marginBottom: 16,
-    maxWidth: '80%',
+    maxWidth: '85%',
   },
   saraMessage: {
     alignSelf: 'flex-start',
@@ -146,73 +173,110 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   messageBubble: {
-    padding: 12,
-    borderRadius: 18,
-    marginBottom: 4,
+    padding: 14,
+    borderRadius: 20,
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   saraBubble: {
-    backgroundColor: '#007AFF',
-    borderBottomLeftRadius: 4,
+    backgroundColor: '#374151',
+    borderBottomLeftRadius: 6,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 20,
   },
   userBubble: {
-    backgroundColor: '#34C759',
-    borderBottomRightRadius: 4,
+    backgroundColor: '#007AFF',
+    borderBottomLeftRadius: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomRightRadius: 6,
   },
   messageText: {
     fontSize: 16,
-    lineHeight: 20,
+    lineHeight: 22,
+    letterSpacing: 0.2,
   },
   saraText: {
-    color: 'white',
+    color: '#F3F4F6',
   },
   userText: {
-    color: 'white',
+    color: '#FFFFFF',
   },
   timestamp: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: 11,
+    color: '#9CA3AF',
     alignSelf: 'flex-end',
+    marginTop: 2,
   },
   typingContainer: {
-    padding: 8,
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-  },
-  typingText: {
-    color: '#666',
-    fontStyle: 'italic',
-  },
-  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+    marginHorizontal: 16,
+    borderRadius: 20,
+    marginBottom: 8,
+  },
+  typingDots: {
+    flexDirection: 'row',
+    marginRight: 8,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#9CA3AF',
+    marginHorizontal: 2,
+  },
+  typingText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  inputContainer: {
+    backgroundColor: '#1F2937',
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    borderTopColor: '#374151',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: '#374151',
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minHeight: 50,
   },
   textInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 20,
-    paddingHorizontal: 16,
+    color: '#F3F4F6',
+    fontSize: 16,
+    maxHeight: 120,
     paddingVertical: 8,
-    marginRight: 8,
-    maxHeight: 100,
-    backgroundColor: '#f9f9f9',
+    paddingRight: 12,
+    textAlignVertical: 'center',
   },
   sendButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
   },
   sendButtonDisabled: {
-    backgroundColor: '#ccc',
+    opacity: 0.5,
   },
   sendButtonText: {
     color: 'white',

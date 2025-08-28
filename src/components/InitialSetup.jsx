@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import axiosInstance from "../services/axios";
 import InitializationContext from "../context/InitializationContext";
+import ChatComponent from "./chatComponents/ChatComponent";
 
 const InitialSetup = () => {
   const { handleChangeLanguage, deviceId, language, lan } = useContext(InitializationContext);
@@ -141,37 +142,13 @@ const InitialSetup = () => {
 
     case 2:
       return (
-        <View style={styles.stepContainer}>
-          <Text style={styles.title}>Bienvenido a Sara</Text>
-          <Text style={styles.subtitle}>Configura tu experiencia</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre de usuario"
-            value={formData.username}
-            onChangeText={(text) =>
-              setFormData({ ...formData, username: text })
-            }
+        <View style={styles.chatContainer}>
+          <ChatComponent
+            messages={[]}
+            onSendMessage={() => {}}
+            language={formData.language}
+            lan={lan}
           />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Correo electrónico"
-            keyboardType="email-address"
-            value={formData.email}
-            onChangeText={(text) => setFormData({ ...formData, email: text })}
-          />
-
-          <TouchableOpacity 
-            style={[
-              styles.button, 
-              (!formData.username || !formData.email) && styles.buttonDisabled
-            ]} 
-            onPress={handleNext}
-            disabled={!formData.username || !formData.email}
-          >
-            <Text style={styles.buttonText}>Continuar</Text>
-          </TouchableOpacity>
         </View>
       );
   }
@@ -184,7 +161,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 20,
     backgroundColor: "#fff",
     alignItems: "center",
   },
@@ -206,6 +182,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 10,
+  },
+  chatContainer: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 600,
+    alignSelf: "center",
   },
   subtitle: {
     fontSize: 16,
