@@ -1,5 +1,4 @@
-// components/InitialSetup.js
-import { useState } from "react";
+import { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -7,20 +6,20 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ImageBackground,
 } from "react-native";
 import axiosInstance from "../services/axios";
-import bg from "../../assets/bg_1.jpg";
+import InitializationContext from "../context/InitializationContext";
 
-const InitialSetup = ({ onComplete }) => {
+const InitialSetup = () => {
+  const { handleChangeLanguage, deviceId, language, lan } = useContext(InitializationContext);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     language: "en",
     accessToken: "",
+    device_id: deviceId || null,
   });
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = async () => {
     if (step === 1) {
@@ -93,76 +92,104 @@ const InitialSetup = ({ onComplete }) => {
   };
 
   const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.title}>Bienvenido a Sara</Text>
-            <Text style={styles.subtitle}>Configura tu experiencia</Text>
+  switch (step) {
+    case 1:
+      return (
+        <View style={styles.stepContainer}>
+          <Text style={styles.title}>Bienvenido a Sara</Text>
+          <Text style={styles.subtitle}>Elige tu idioma preferido</Text>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Nombre de usuario"
-              value={formData.username}
-              onChangeText={(text) =>
-                setFormData({ ...formData, username: text })
-              }
-            />
+          <TouchableOpacity 
+            style={[
+              styles.languageButton, 
+              formData.language === 'es' && styles.languageButtonSelected
+            ]} 
+            onPress={() => {
+              setFormData({ ...formData, language: 'es' });
+              handleChangeLanguage('es');
+            }}
+          >
+            <Text style={styles.languageButtonText}>Español</Text>
+          </TouchableOpacity>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Correo electrónico"
-              keyboardType="email-address"
-              value={formData.email}
-              onChangeText={(text) => setFormData({ ...formData, email: text })}
-            />
+          <TouchableOpacity 
+            style={[
+              styles.languageButton, 
+              formData.language === 'en' && styles.languageButtonSelected
+            ]} 
+            onPress={() => {
+              setFormData({ ...formData, language: 'en' });
+              handleChangeLanguage('en');
+            }}
+          >
+            <Text style={styles.languageButtonText}>English</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={handleNext}>
-              <Text style={styles.buttonText}>Continuar</Text>
-            </TouchableOpacity>
-          </View>
-        );
+          <TouchableOpacity 
+            style={[
+              styles.languageButton, 
+              formData.language === 'pt' && styles.languageButtonSelected
+            ]} 
+            onPress={() => {
+              setFormData({ ...formData, language: 'pt' });
+              handleChangeLanguage('pt');
+            }}
+          >
+            <Text style={styles.languageButtonText}>Português</Text>
+          </TouchableOpacity>
 
-      case 2:
-        return (
-          <View style={styles.stepContainer}>
-            <Text style={styles.title}>Verifica tu identidad</Text>
-            <Text style={styles.subtitle}>
-              Hemos enviado un token de acceso a {formData.email}
-            </Text>
+          <TouchableOpacity 
+            style={[
+              styles.button, 
+              !formData.language && styles.buttonDisabled
+            ]} 
+            onPress={handleNext}
+            disabled={!formData.language}
+          >
+            <Text style={styles.buttonText}>Continuar</Text>
+          </TouchableOpacity>
+        </View>
+      );
 
-            <TextInput
-              style={styles.input}
-              placeholder="Token de acceso"
-              value={formData.accessToken}
-              onChangeText={(text) =>
-                setFormData({ ...formData, accessToken: text })
-              }
-            />
+    case 2:
+      return (
+        <View style={styles.stepContainer}>
+          <Text style={styles.title}>Bienvenido a Sara</Text>
+          <Text style={styles.subtitle}>Configura tu experiencia</Text>
 
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleNext}
-              disabled={isLoading}
-            >
-              <Text style={styles.buttonText}>
-                {isLoading ? "Verificando..." : "Verificar Token"}
-              </Text>
-            </TouchableOpacity>
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre de usuario"
+            value={formData.username}
+            onChangeText={(text) =>
+              setFormData({ ...formData, username: text })
+            }
+          />
 
-            <TouchableOpacity onPress={() => setStep(1)}>
-              <Text style={styles.linkText}>Cambiar correo</Text>
-            </TouchableOpacity>
-          </View>
-        );
-    }
-  };
+          <TextInput
+            style={styles.input}
+            placeholder="Correo electrónico"
+            keyboardType="email-address"
+            value={formData.email}
+            onChangeText={(text) => setFormData({ ...formData, email: text })}
+          />
 
-  return (
-    <ImageBackground source={bg} style={styles.container} resizeMode="cover">
-      {renderStep()}
-    </ImageBackground>
-  );
+          <TouchableOpacity 
+            style={[
+              styles.button, 
+              (!formData.username || !formData.email) && styles.buttonDisabled
+            ]} 
+            onPress={handleNext}
+            disabled={!formData.username || !formData.email}
+          >
+            <Text style={styles.buttonText}>Continuar</Text>
+          </TouchableOpacity>
+        </View>
+      );
+  }
+};
+
+  return <View style={styles.container}>{renderStep()}</View>;
 };
 
 const styles = StyleSheet.create({
@@ -171,7 +198,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 20,
     backgroundColor: "#fff",
+    alignItems: "center",
   },
+  image: {
+    width: "50%",
+    height: "50%",
+    top: 0,
+    left: 0,
+    opacity: 0.3,
+  },
+
   stepContainer: {
     width: "100%",
     maxWidth: 400,

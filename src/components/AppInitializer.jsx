@@ -1,61 +1,12 @@
-// AppInitializer.js
-import { useState, useEffect } from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
-import { useApp } from '../context/AppContext';
 import InitialSetup from '../components/InitialSetup';
-// import WelcomeScreen from '../components/WelcomeScreen';
-import deviceVerification from '../services/deviceVerification';
+import InitializationContext from '../context/InitializationContext';
+import { useContext } from 'react';
 
 const AppInitializer = ({ children }) => {
-  const { isLoading, user, updateUser } = useApp();
-  const [showSetup, setShowSetup] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [deviceChecked, setDeviceChecked] = useState(false);
+  const {isLoading, initializationStep, lan, language, deviceId, isAppInitialized} = useContext(InitializationContext);
 
-  useEffect(() => {
-    const initializeDeviceCheck = async () => {
-      await deviceVerification.initialize();
-      setDeviceChecked(true);
-    };
-    
-    initializeDeviceCheck();
-  }, []);
-
-  useEffect(() => {
-    // if (!isLoading && user && deviceChecked) {
-    //   if (!user.email || !user.language) {
-    //     setShowSetup(true);
-    //   } else if (user.hasReceivedWelcomeGift === false && 
-    //              await deviceVerification.canReceiveWelcomeGift()) {
-    //     setShowWelcome(true);
-    //   }
-    // }
-  }, [isLoading, user, deviceChecked]);
-
-  const handleSetupComplete = async (updatedUser) => {
-    updateUser(updatedUser);
-    setShowSetup(false);
-    
-    // Verificar si puede recibir el regalo
-    if (await deviceVerification.canReceiveWelcomeGift()) {
-      setShowWelcome(true);
-    }
-  };
-
-  const handleWelcomeComplete = async () => {
-    // Marcar en el dispositivo y servidor que ya recibió el regalo
-    await deviceVerification.markWelcomeGiftReceived();
-    
-    // Actualizar usuario
-    await updateUser({ 
-      hasReceivedWelcomeGift: true,
-      tokens: (user.tokens || 0) + 1000 // Agregar los tokens
-    });
-    
-    setShowWelcome(false);
-  };
-
-  if (isLoading || !deviceChecked) {
+  if (isLoading || initializationStep === 'checking_device') {
     return (
       <View style={{ 
         flex: 1, 
@@ -64,20 +15,34 @@ const AppInitializer = ({ children }) => {
         backgroundColor: '#fff'
       }}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={{ marginTop: 10 }}>Verificando dispositivo...</Text>
+        <Text style={{ marginTop: 10 }}>{lan[language].init['checking_device']}</Text>
       </View>
     );
   }
 
-  if (showSetup) {
-    return <InitialSetup onComplete={handleSetupComplete} />;
+  if (initializationStep === 'error') {
+    return (
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: '#fff'
+      }}>
+        <Text style={{ color: 'red', fontSize: 16, textAlign: 'center' }}>
+          {lan[language].init['error']}
+        </Text>
+      </View>
+    );
   }
 
-  // if (showWelcome) {
-  //   return <WelcomeScreen onStart={handleWelcomeComplete} />;
-  // }
+  if (initializationStep === 'device_ready') {
+    return <InitialSetup deviceId={deviceId} />;
+  }
 
-  return children;
+  if (isAppInitialized && initializationStep === 'app_ready') {
+    return children;
+  }
 };
 
 export default AppInitializer;

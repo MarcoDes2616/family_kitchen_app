@@ -9,7 +9,9 @@ const App = () => {
     <InitializationProvider>
       <SafeAreaProvider>
         <AppProvider>
-          <AppInitializer />
+          <AppInitializer >
+            <AppContent />
+          </AppInitializer>
         </AppProvider>
       </SafeAreaProvider>
     </InitializationProvider>

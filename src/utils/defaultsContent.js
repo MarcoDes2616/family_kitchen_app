@@ -21,5 +21,7 @@ export const defaultsContent = {
     userData: "user_data",
     initialPromptSent: "initial_prompt_sent",
     appSettings: "app_settings",
+    deviceId: "device_id",
+    appInitialized: "app_initialized",
   },
 };

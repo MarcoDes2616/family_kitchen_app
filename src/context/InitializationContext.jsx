@@ -1,63 +1,159 @@
-import { createContext, useState, useEffect } from 'react';
-import { useDeviceId } from '../hooks/useDeviceId';
+import { createContext, useState, useEffect } from "react";
+import { lan } from "../utils/lenguages";
+import { defaultsContent } from "../utils/defaultsContent";
+const { storageKeys, language: defaultLan } = defaultsContent;
+import { useDeviceId } from "../hooks/useDeviceId";
+import useLocalStorage from "../hooks/useLocalStorage";
 
 const InitializationContext = createContext();
 
 export const InitializationProvider = ({ children }) => {
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [initializationStep, setInitializationStep] = useState('checking_device');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAppInitialized, setIsAppInitialized] = useState(true);
+  const [initializationStep, setInitializationStep] = useState("app_ready");
   const [deviceId, setDeviceId] = useState(null);
-  const [deviceInfo, setDeviceInfo] = useState({});
   const [error, setError] = useState(null);
-  
-  // Obtener el deviceId del hook
+  const [language, setLanguage] = useState(defaultLan);
+
   const hookDeviceId = useDeviceId();
+  const { saveLocal, getStorage } = useLocalStorage();
 
-  // Efecto para inicializar el deviceId y información del dispositivo
   useEffect(() => {
+    initializeApp();
+  }, []);
 
-    initializeDevice();
-  }, [hookDeviceId]);
+  const initializeApp = async () => {
+    try {
+      setIsLoading(true);
+      setInitializationStep("checking_device");
 
-
-   const initializeDevice = async () => {
-      try {
-        setIsInitializing(true);
-        setInitializationStep('checking_device');
-        
-        if (hookDeviceId) {
-          setDeviceId(hookDeviceId);
-          setDeviceInfo({
-            id: hookDeviceId,
-            platform: Platform.OS,
-            timestamp: new Date().toISOString()
-          });
-          setInitializationStep('device_ready');
-        }
-        
-      } catch (err) {
-        setError('Error al inicializar el dispositivo');
-        console.error('Initialization error:', err);
-      } finally {
-        setIsInitializing(false);
+      const storage = await getStorage();
+      
+      if (storage && storage.app_initialized) {
+        setIsAppInitialized(true);
+        setInitializationStep("app_ready");
+        setIsLoading(false);
+        return;
       }
-    };
+      
+      // if (storage) {
+      //   setIsAppInitialized(true);
+      //   setInitializationStep('device_ready');
+      //   setIsLoading(false);
+      //   return;
+      // }
 
-  // Función para reiniciar la inicialización
+      // await initializeDevice();
+    } catch (err) {
+      setError("Error initializing app: " + err.message);
+      setInitializationStep("error");
+      setIsLoading(false);
+    }
+  };
+
+  const initializeDevice = async () => {
+    try {
+      setInitializationStep("checking_device");
+
+      // Verificar si ya existe un device_id en el storage
+      const storedDeviceId = await getKey(storageKeys.deviceId);
+      
+      if (storedDeviceId) {
+        setDeviceId(storedDeviceId);
+        setInitializationStep("device_ready");
+        await completeInitialization();
+        return;
+      }
+
+      // Si no existe device_id, usar el hook
+      if (hookDeviceId) {
+        setDeviceId(hookDeviceId);
+        // Guardar el device_id en el storage
+        await saveLocal(storageKeys.deviceId, hookDeviceId);
+        setInitializationStep("device_ready");
+        await completeInitialization();
+        return;
+      }
+
+      // Si no se puede obtener device_id de ninguna forma
+      setError("No se pudo obtener un identificador del dispositivo");
+      setInitializationStep("error");
+
+    } catch (err) {
+      setError("Error initializing device: " + err.message);
+      setInitializationStep("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const completeInitialization = async () => {
+    try {
+      setInitializationStep("completing_initialization");
+      
+      // Marcar la app como inicializada en el storage
+      await saveLocal(storageKeys.appInitialized, true);
+      
+      // Cargar lenguaje guardado si existe, sino usar el default
+      const savedLanguage = await getKey(storageKeys.language);
+      if (savedLanguage) {
+        setLanguage(savedLanguage);
+      } else {
+        setLanguage(defaultLan);
+        await saveLocal(storageKeys.language, defaultLan);
+      }
+      
+      setIsAppInitialized(true);
+      setInitializationStep("app_ready");
+      
+    } catch (err) {
+      setError("Error completing initialization: " + err.message);
+      setInitializationStep("error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChangeLanguage = async (newLanguage) => {
+    try {
+      setLanguage(newLanguage);
+      // Guardar el lenguaje en el storage
+      await saveLocal(storageKeys.language, newLanguage);
+    } catch (err) {
+      console.error("Error saving language:", err);
+    }
+  };
+
   const restartInitialization = async () => {
-    setError(null);
-    setIsInitializing(true);
-    setInitializationStep('checking_device');
-    // Aquí puedes agregar lógica adicional de reinicio si es necesario
+    try {
+      setError(null);
+      setIsLoading(true);
+      setInitializationStep("checking_device");
+      
+      // Limpiar el estado de inicialización
+      await saveLocal(storageKeys.appInitialized, false);
+      setIsAppInitialized(false);
+      
+      // Reiniciar el proceso
+      await initializeDevice();
+      
+    } catch (err) {
+      setError("Error restarting initialization: " + err.message);
+      setInitializationStep("error");
+      setIsLoading(false);
+    }
   };
 
   const value = {
-    isInitializing,
+    isLoading,
+    isAppInitialized,
     initializationStep,
     deviceId,
-    deviceInfo,
     error,
-    restartInitialization
+    restartInitialization,
+    lan,
+    language,
+    handleChangeLanguage,
   };
 
   return (

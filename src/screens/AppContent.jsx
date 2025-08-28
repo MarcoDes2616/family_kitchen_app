@@ -38,23 +38,11 @@ const AppContent = () => {
   };
 
   return (
-  <ImageBackground 
-    source={bg}
-    style={[getSafeAreaStyles(), styles.container]}
-    resizeMode="cover"
-  >
-    <StatusBar
-      translucent
-      backgroundColor="transparent"
-      barStyle="dark-content"
-    />
-    <FloatingButton />
-    {/* Contenido principal de tu aplicación */}
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#fff' }}>App Content</Text>
-      <Text style={{ marginTop: 10, color: '#fff' }}>Pantalla protegida para todas las plataformas</Text>
-    </View>
-  </ImageBackground>
+  <View>
+    <Text>
+      App Content
+    </Text>
+  </View>
 );
 };
 

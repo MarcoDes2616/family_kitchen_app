@@ -29,6 +29,12 @@ export const lan = {
         
         Sé creativo pero mantén las recetas realistas y fáciles de hacer en casa.
         Mi idioma preferido es el español.`,
+    init: {
+      step1: "Iniciando configuración...",
+      checking_device: "Verificando dispositivo...",
+      step3: "Dispositivo listo.",
+      error: "Error al inicializar el dispositivo.",
+    },
   },
   en: {
     welcome: "Welcome",
@@ -58,6 +64,12 @@ export const lan = {
         6. Difficulty level (low, medium, high)
         Be creative but keep the recipes realistic and easy to make at home.
         My preferred language is English.`,
+    init: {
+      step1: "Starting setup...",
+      checking_device: "Checking device...",
+      step3: "Device ready.",
+      error: "Error initializing device.",
+    },
   },
   pt: {
     welcome: "Bem-vindo",
@@ -87,6 +99,12 @@ export const lan = {
         6. Nível de dificuldade (baixo, médio, alto)
         Seja criativo, mas mantenha as receitas realistas e fáceis de fazer em casa.
         Meu idioma preferido é o português.`,
+    init: {
+      step1: "Iniciando configuração...",
+      checking_device: "Verificando dispositivo...",
+      step3: "Dispositivo pronto.",
+      error: "Erro ao inicializar o dispositivo.",
+    },
   },
   fr: {
     welcome: "Bienvenue",
@@ -116,5 +134,11 @@ export const lan = {
         6. Niveau de difficulté (faible, moyen, élevé)
         Soyez créatif mais gardez les recettes réalistes et faciles à faire à la maison.
         Ma langue préférée est le français.`,
+    init: {
+      step1: "Démarrage de la configuration...",
+      checking_device: "Vérification de l'appareil...",
+      step3: "Appareil prêt.",
+      error: "Erreur lors de l'initialisation de l'appareil.",
+    },
   },
 };

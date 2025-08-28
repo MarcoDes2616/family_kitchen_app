@@ -1,17 +1,17 @@
-// hooks/useDeviceId.js
 import { useState, useEffect } from 'react';
-import { Platform, NativeModules, DeviceInfo } from 'react-native';
+import { Platform } from 'react-native';
 import * as Application from 'expo-application';
 import * as Device from 'expo-device';
 
-const useDeviceId = () => {
+export const useDeviceId = () => {
   const [deviceId, setDeviceId] = useState(null);
 
   useEffect(() => {
     const getDeviceIdentifier = async () => {
+      
       try {
         let identifier;
-
+        
         // Para Android
         if (Platform.OS === 'android') {
           identifier = await Application.getAndroidId();
@@ -38,7 +38,7 @@ const useDeviceId = () => {
     };
 
     getDeviceIdentifier();
-  }, []);
+  }, []);  
 
   const getWebFingerprint = async () => {
     // Implementar fingerprinting para web
@@ -84,4 +84,4 @@ const useDeviceId = () => {
   return deviceId;
 };
 
-export default useDeviceId;
+// export default useDeviceId;
