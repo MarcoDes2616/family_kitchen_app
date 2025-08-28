@@ -1,7 +1,8 @@
-import { Text, View, StatusBar, Platform, useWindowDimensions } from "react-native";
+import { Text, View, StatusBar, Platform, useWindowDimensions, StyleSheet, Image } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect } from 'react';
 import FloatingButton from "../components/FloatingButton";
+import bg from '../../assets/bg_1.jpg';
 
 const AppContent = () => {
   const insets = useSafeAreaInsets();
@@ -37,13 +38,14 @@ const AppContent = () => {
   };
 
   return (
-    <View style={[getSafeAreaStyles(), { backgroundColor: '#f5f5f5' }]}>
+    <View style={[getSafeAreaStyles(), styles.container]}>
       <StatusBar
         translucent
         backgroundColor="transparent"
         barStyle="dark-content"
       />
       <FloatingButton />
+      {/* <Image source={bg} style={{ position: 'absolute', width: '100%', height: '100%' }} /> */}
       {/* Contenido principal de tu aplicación */}
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ fontSize: 20, fontWeight: 'bold' }}>App Content</Text>
@@ -52,5 +54,15 @@ const AppContent = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundImage: `url(${bg})`,
+    // backgroundColor: "#000"
+  },
+});
 
 export default AppContent;

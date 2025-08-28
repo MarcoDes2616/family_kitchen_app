@@ -19,7 +19,7 @@ export const useApp = () => {
 export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [initialPromptSent, setInitialPromptSent] = useState(false);
   const [language, setLanguage] = useState(defaultLan);
   
