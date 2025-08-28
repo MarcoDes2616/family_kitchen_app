@@ -34,6 +34,7 @@ export const lan = {
       checking_device: "Verificando dispositivo...",
       step3: "Dispositivo listo.",
       error: "Error al inicializar el dispositivo.",
+      1: ["¿Qué idioma prefieres?","Selecciona tu idioma preferido", "Continuar"]
     },
   },
   en: {
@@ -69,6 +70,7 @@ export const lan = {
       checking_device: "Checking device...",
       step3: "Device ready.",
       error: "Error initializing device.",
+      1: ["What language do you prefer?","Select your preferred language", "Continue"]
     },
   },
   pt: {
@@ -104,6 +106,7 @@ export const lan = {
       checking_device: "Verificando dispositivo...",
       step3: "Dispositivo pronto.",
       error: "Erro ao inicializar o dispositivo.",
+      1: ["Qual idioma você prefere?","Selecione seu idioma preferido", "Continuar"]
     },
   },
   fr: {
@@ -139,6 +142,7 @@ export const lan = {
       checking_device: "Vérification de l'appareil...",
       step3: "Appareil prêt.",
       error: "Erreur lors de l'initialisation de l'appareil.",
+      1: ["Quelle langue préférez-vous?","Sélectionnez votre langue préférée", "Continuer"]
     },
   },
 };

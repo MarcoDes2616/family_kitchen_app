@@ -3,7 +3,7 @@ import axios from 'axios';
 import authService from './authServices';
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
+  baseURL: "http://192.168.1.113:8080/api/v1",
   headers: {
     'Content-Type': 'application/json'
   },

@@ -16,9 +16,9 @@ const useLocalStorage = () => {
   const saveLocal = useCallback(async (clave, valor) => {
     try {
       if (plataforma === 'web') {
-        localStorage.setItem(clave, JSON.stringify(valor));
+        localStorage.setItem(clave, valor);
       } else {
-        await AsyncStorage.setItem(clave, JSON.stringify(valor));
+        await AsyncStorage.setItem(clave, valor);
       }
       return true;
     } catch (error) {
@@ -45,7 +45,7 @@ const useLocalStorage = () => {
     try {
       if (plataforma === 'web') {
         const valor = localStorage.getItem(clave);
-        return valor ? JSON.parse(valor) : null;
+        return valor || null;
       } else {
         const valor = await AsyncStorage.getItem(clave);
         return valor || null;

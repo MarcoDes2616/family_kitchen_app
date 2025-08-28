@@ -4,97 +4,96 @@ import { defaultsContent } from "../utils/defaultsContent";
 const { storageKeys, language: defaultLan } = defaultsContent;
 import { useDeviceId } from "../hooks/useDeviceId";
 import useLocalStorage from "../hooks/useLocalStorage";
+import axiosInstance from "../services/axios";
 
 const InitializationContext = createContext();
 
 export const InitializationProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [isAppInitialized, setIsAppInitialized] = useState(true);
-  const [initializationStep, setInitializationStep] = useState("app_ready");
+  const [isAppInitialized, setIsAppInitialized] = useState(false);
+  const [initializationStep, setInitializationStep] = useState("checking_device");
   const [deviceId, setDeviceId] = useState(null);
   const [error, setError] = useState(null);
   const [language, setLanguage] = useState(defaultLan);
+  const [userFound, setUserFound] = useState({});
 
   const hookDeviceId = useDeviceId();
-  const { saveLocal, getStorage } = useLocalStorage();
+  const { saveLocal, getStorage, deleteLocal } = useLocalStorage();
 
   useEffect(() => {
     initializeApp();
+    // deleteStorage();
   }, []);
+
+  const deleteStorage = async () => {
+    try {
+      await deleteLocal(storageKeys.appInitialized);
+      await deleteLocal(storageKeys.deviceId);
+      await deleteLocal(storageKeys.language);
+    } catch (err) {
+      console.error("Error deleting storage key:", err);
+    }
+  };
 
   const initializeApp = async () => {
     try {
       setIsLoading(true);
-      setInitializationStep("checking_device");
 
       const storage = await getStorage();
+      console.log("Storage on init:", storage);
       
-      if (storage && storage.app_initialized) {
+      if (storage && storage.app_initialized && !!storage.device_id) {
         setIsAppInitialized(true);
         setInitializationStep("app_ready");
-        setIsLoading(false);
         return;
       }
       
-      // if (storage) {
-      //   setIsAppInitialized(true);
-      //   setInitializationStep('device_ready');
-      //   setIsLoading(false);
-      //   return;
-      // }
-
-      // await initializeDevice();
-    } catch (err) {
-      setError("Error initializing app: " + err.message);
-      setInitializationStep("error");
-      setIsLoading(false);
-    }
-  };
-
-  const initializeDevice = async () => {
-    try {
-      setInitializationStep("checking_device");
-
-      // Verificar si ya existe un device_id en el storage
-      const storedDeviceId = await getKey(storageKeys.deviceId);
-      
-      if (storedDeviceId) {
-        setDeviceId(storedDeviceId);
-        setInitializationStep("device_ready");
-        await completeInitialization();
+      if (storage.device_id) {
+        setInitializationStep('device_ready');
+        await fetchDeviceId(storage.device_id);
         return;
+      } else {
+        await initializeDevice();
       }
 
-      // Si no existe device_id, usar el hook
-      if (hookDeviceId) {
-        setDeviceId(hookDeviceId);
-        // Guardar el device_id en el storage
-        await saveLocal(storageKeys.deviceId, hookDeviceId);
-        setInitializationStep("device_ready");
-        await completeInitialization();
-        return;
-      }
-
-      // Si no se puede obtener device_id de ninguna forma
-      setError("No se pudo obtener un identificador del dispositivo");
-      setInitializationStep("error");
-
     } catch (err) {
-      setError("Error initializing device: " + err.message);
       setInitializationStep("error");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const fetchDeviceId = async (id) => {
+    try {
+      const {data} = await axiosInstance.get(`/system/check_device/${id}`);
+      if(data.success){
+        setInitializationStep("app_ready");
+        setUserFound(data.user || {});
+        return;
+      }
+    } catch (err) {
+      console.error("Error fetching device ID:", err);
+      setInitializationStep("error");
+    }
+  }
+
+  const initializeDevice = async () => {
+    try {
+      if (hookDeviceId) {
+        setDeviceId(hookDeviceId);
+        await saveLocal(storageKeys.deviceId, hookDeviceId);
+        setInitializationStep("device_ready");
+        await completeInitialization();
+        return;
+      }
+
+    } catch (err) {
+      setInitializationStep("error");
+    }
+  };
+
   const completeInitialization = async () => {
     try {
-      setInitializationStep("completing_initialization");
-      
-      // Marcar la app como inicializada en el storage
-      await saveLocal(storageKeys.appInitialized, true);
-      
-      // Cargar lenguaje guardado si existe, sino usar el default
       const savedLanguage = await getKey(storageKeys.language);
       if (savedLanguage) {
         setLanguage(savedLanguage);
@@ -103,21 +102,14 @@ export const InitializationProvider = ({ children }) => {
         await saveLocal(storageKeys.language, defaultLan);
       }
       
-      setIsAppInitialized(true);
-      setInitializationStep("app_ready");
-      
     } catch (err) {
-      setError("Error completing initialization: " + err.message);
       setInitializationStep("error");
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleChangeLanguage = async (newLanguage) => {
     try {
       setLanguage(newLanguage);
-      // Guardar el lenguaje en el storage
       await saveLocal(storageKeys.language, newLanguage);
     } catch (err) {
       console.error("Error saving language:", err);

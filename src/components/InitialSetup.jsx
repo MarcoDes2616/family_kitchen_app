@@ -16,13 +16,17 @@ const InitialSetup = () => {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    language: "en",
-    accessToken: "",
+    language: language || "en",
+    user_token: "",
     device_id: deviceId || null,
   });
 
   const handleNext = async () => {
     if (step === 1) {
+      setStep(2);
+      return;
+    }
+    if (step === 2) {
       // Validar username y email
       if (!formData.username || !formData.email) {
         Alert.alert("Error", "Por favor completa todos los campos");
@@ -91,52 +95,36 @@ const InitialSetup = () => {
     }
   };
 
+  const languagesOptions = [
+    { code: "en", label: "English" },
+    { code: "es", label: "Español" },
+    { code: "pt", label: "Português" },
+    { code: "fr", label: "Français" },
+  ];
+
   const renderStep = () => {
   switch (step) {
     case 1:
       return (
         <View style={styles.stepContainer}>
-          <Text style={styles.title}>Bienvenido a Sara</Text>
-          <Text style={styles.subtitle}>Elige tu idioma preferido</Text>
-
-          <TouchableOpacity 
-            style={[
-              styles.languageButton, 
-              formData.language === 'es' && styles.languageButtonSelected
-            ]} 
-            onPress={() => {
-              setFormData({ ...formData, language: 'es' });
-              handleChangeLanguage('es');
-            }}
-          >
-            <Text style={styles.languageButtonText}>Español</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[
-              styles.languageButton, 
-              formData.language === 'en' && styles.languageButtonSelected
-            ]} 
-            onPress={() => {
-              setFormData({ ...formData, language: 'en' });
-              handleChangeLanguage('en');
-            }}
-          >
-            <Text style={styles.languageButtonText}>English</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[
-              styles.languageButton, 
-              formData.language === 'pt' && styles.languageButtonSelected
-            ]} 
-            onPress={() => {
-              setFormData({ ...formData, language: 'pt' });
-              handleChangeLanguage('pt');
-            }}
-          >
-            <Text style={styles.languageButtonText}>Português</Text>
-          </TouchableOpacity>
+          <Text style={styles.title}>{lan[language].init[step][0]}</Text>
+          <Text style={styles.subtitle}>{lan[language].init[step][1]}</Text>
+          {languagesOptions.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.languageButton,
+                  formData.language === lang.code && styles.languageButtonSelected,
+                ]}
+                onPress={() => {
+                  setFormData({ ...formData, language: lang.code });
+                  handleChangeLanguage(lang.code);
+                }}
+              >
+                <Text style={styles.languageButtonText}>{lang.label}</Text>
+              </TouchableOpacity>
+            ))
+          }
 
           <TouchableOpacity 
             style={[
@@ -146,7 +134,7 @@ const InitialSetup = () => {
             onPress={handleNext}
             disabled={!formData.language}
           >
-            <Text style={styles.buttonText}>Continuar</Text>
+            <Text style={styles.buttonText}>{lan[language].init[step][2]}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -248,6 +236,26 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     textAlign: "center",
     marginTop: 15,
+  },
+  languageButton: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  languageButtonSelected: {
+    borderColor: '#007AFF',
+    backgroundColor: '#f0f8ff',
+  },
+  languageButtonText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
   },
 });
 

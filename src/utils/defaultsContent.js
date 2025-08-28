@@ -23,5 +23,6 @@ export const defaultsContent = {
     appSettings: "app_settings",
     deviceId: "device_id",
     appInitialized: "app_initialized",
+    language: "language",
   },
 };
