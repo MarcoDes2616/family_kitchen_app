@@ -1,4 +1,4 @@
-import { Text, View, StatusBar, Platform, useWindowDimensions, StyleSheet, Image } from "react-native";
+import { Text, View, StatusBar, Platform, useWindowDimensions, StyleSheet, Image, ImageBackground } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect } from 'react';
 import FloatingButton from "../components/FloatingButton";
@@ -38,21 +38,24 @@ const AppContent = () => {
   };
 
   return (
-    <View style={[getSafeAreaStyles(), styles.container]}>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="dark-content"
-      />
-      <FloatingButton />
-      {/* <Image source={bg} style={{ position: 'absolute', width: '100%', height: '100%' }} /> */}
-      {/* Contenido principal de tu aplicación */}
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>App Content</Text>
-        <Text style={{ marginTop: 10 }}>Pantalla protegida para todas las plataformas</Text>
-      </View>
+  <ImageBackground 
+    source={require('../../assets/bg_1.jpg')} // o import bg from '../../assets/bg_1.jpg'
+    style={[getSafeAreaStyles(), styles.container]}
+    resizeMode="cover"
+  >
+    <StatusBar
+      translucent
+      backgroundColor="transparent"
+      barStyle="dark-content"
+    />
+    <FloatingButton />
+    {/* Contenido principal de tu aplicación */}
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#fff' }}>App Content</Text>
+      <Text style={{ marginTop: 10, color: '#fff' }}>Pantalla protegida para todas las plataformas</Text>
     </View>
-  );
+  </ImageBackground>
+);
 };
 
 const styles = StyleSheet.create({
@@ -60,7 +63,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundImage: `url(${bg})`,
+    backgroundImage: url('../../assets/bg_1.jpg'),
     // backgroundColor: "#000"
   },
 });
