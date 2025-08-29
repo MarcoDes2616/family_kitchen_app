@@ -14,7 +14,7 @@ const AppInitializer = ({ children }) => {
         alignItems: 'center',
         backgroundColor: '#fff'
       }}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#232372ff" />
         <Text style={{ marginTop: 10 }}>{lan[language].init['checking_device']}</Text>
       </View>
     );

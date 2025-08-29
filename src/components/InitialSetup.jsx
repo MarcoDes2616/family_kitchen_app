@@ -12,13 +12,14 @@ import InitializationContext from "../context/InitializationContext";
 import ChatComponent from "./chatComponents/ChatComponent";
 
 const InitialSetup = () => {
-  const { handleChangeLanguage, deviceId, language, lan } = useContext(InitializationContext);
+  const { handleChangeLanguage, deviceId, language, lan } = useContext(
+    InitializationContext
+  );
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     language: language || "en",
-    user_token: "",
     device_id: deviceId || null,
   });
 
@@ -104,18 +105,19 @@ const InitialSetup = () => {
   ];
 
   const renderStep = () => {
-  switch (step) {
-    case 1:
-      return (
-        <View style={styles.stepContainer}>
-          <Text style={styles.title}>{lan[language].init[step][0]}</Text>
-          <Text style={styles.subtitle}>{lan[language].init[step][1]}</Text>
-          {languagesOptions.map((lang) => (
+    switch (step) {
+      case 1:
+        return (
+          <View style={styles.stepContainer}>
+            <Text style={styles.title}>{lan[language].init[step][0]}</Text>
+            <Text style={styles.subtitle}>{lan[language].init[step][1]}</Text>
+            {languagesOptions.map((lang) => (
               <TouchableOpacity
                 key={lang.code}
                 style={[
                   styles.languageButton,
-                  formData.language === lang.code && styles.languageButtonSelected,
+                  formData.language === lang.code &&
+                    styles.languageButtonSelected,
                 ]}
                 onPress={() => {
                   setFormData({ ...formData, language: lang.code });
@@ -124,35 +126,32 @@ const InitialSetup = () => {
               >
                 <Text style={styles.languageButtonText}>{lang.label}</Text>
               </TouchableOpacity>
-            ))
-          }
+            ))}
 
-          <TouchableOpacity 
-            style={[
-              styles.button, 
-              !formData.language && styles.buttonDisabled
-            ]} 
-            onPress={handleNext}
-            disabled={!formData.language}
-          >
-            <Text style={styles.buttonText}>{lan[language].init[step][2]}</Text>
-          </TouchableOpacity>
-        </View>
-      );
+            <TouchableOpacity
+              style={[
+                styles.button,
+                !formData.language && styles.buttonDisabled,
+              ]}
+              onPress={handleNext}
+              disabled={!formData.language}
+            >
+              <Text style={styles.buttonText}>
+                {lan[language].init[step][2]}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        );
 
-    case 2:
-      return (
-        <View style={styles.chatContainer}>
+      case 2:
+        return (
           <ChatComponent
-            messages={[]}
-            onSendMessage={() => {}}
-            language={formData.language}
-            lan={lan}
+            formData={formData}
+            setFormData={setFormData}
           />
-        </View>
-      );
-  }
-};
+        );
+    }
+  };
 
   return <View style={styles.container}>{renderStep()}</View>;
 };
@@ -161,8 +160,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffffff",
     alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 20,
   },
   image: {
     width: "50%",
@@ -186,8 +187,11 @@ const styles = StyleSheet.create({
   chatContainer: {
     flex: 1,
     width: "100%",
+    height: "100%",
     maxWidth: 600,
     alignSelf: "center",
+    backgroundColor: "#2e2c2cff",
+    paddingBottom: 20,
   },
   subtitle: {
     fontSize: 16,
@@ -221,23 +225,23 @@ const styles = StyleSheet.create({
   },
   languageButton: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   languageButtonSelected: {
-    borderColor: '#007AFF',
-    backgroundColor: '#f0f8ff',
+    borderColor: "#007AFF",
+    backgroundColor: "#f0f8ff",
   },
   languageButtonText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   buttonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
 });
 

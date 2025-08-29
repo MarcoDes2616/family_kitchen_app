@@ -1,257 +1,294 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  FlatList, 
-  Image, 
+import React, { useState, useRef, useEffect, useContext } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Image,
   StyleSheet,
   KeyboardAvoidingView,
-  Platform
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import backgroundImage from '../../../assets/bg_init.jpg'; // Asegúrate de tener una imagen de fondo adecuada
+  Platform,
+  SafeAreaView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import backgroundImage from "../../../assets/bg_init.jpg";
+import { initialMessages } from "../../utils/initialMessages";
+import InitializationContext from "../../context/InitializationContext";
+import useLocalStorage from "../../hooks/useLocalStorage";
 
-const ChatComponent = ({ 
-  messages, 
-  onSendMessage, 
-  isTyping = false 
-}) => {
+const ChatComponent = ({ formData, setFormData }) => {
   const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [currentSaraIndex, setCurrentSaraIndex] = useState(0);
+  const [isVerifying, setIsVerifying] = useState(false);
+
   const flatListRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [messages]);
+  const { requestUserToken, setInitializationStep, setIsAppInitialized} = useContext(InitializationContext)
+  const { saveLocal } = useLocalStorage();
 
-  const handleSend = () => {
-    if (inputText.trim()) {
-      onSendMessage(inputText.trim());
-      setInputText('');
+  useEffect(() => {
+    // Lanzamos el primer mensaje de Sara
+    if (initialMessages.length > 0) {
+      simulateSaraMessage(initialMessages[0]);
     }
+  }, []);
+
+  const handleSend = async () => {
+    if (!inputText.trim()) return;
+
+    const newMessage = {
+      id: Date.now(),
+      role: 'user',
+      content: inputText.trim(),
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+    scrollToBottom();
+
+    // flujo según el índice de Sara
+    if (currentSaraIndex === 1) {
+      // nombre
+      setFormData((prev) => ({ ...prev, username: inputText.trim() }));
+      simulateSaraMessage(initialMessages[2]);
+    } else if (currentSaraIndex === 2) {
+      // correo
+      setFormData((prev) => ({ ...prev, email: inputText.trim() }));
+      await requestUserToken({formData}); // enviar correo
+      simulateSaraMessage(initialMessages[3]);
+    } else if (currentSaraIndex === 3) {
+      // token ingresado por el usuario
+      setIsVerifying(true);
+      simulateSaraMessage(initialMessages[4]);
+
+      // aquí deberías validar el token con el backend
+      setTimeout(() => {
+        setIsVerifying(false);
+        simulateSaraMessage(initialMessages[6]);
+        setTimeout(() => simulateSaraMessage(initialMessages[7]), 2000);
+      }, 2000);
+    }
+    setInputText("")
+  }
+
+  const handleContinue = async () => {
+    setInitializationStep('app_ready');
+    setIsAppInitialized(true);
+    await saveLocal('app_initialized', true);
   };
 
-const renderMessage = ({ item }) => {
-  const isSara = item.role === 'sara';
-  
-  return (
-    <View style={[
-      styles.messageContainer,
-      isSara ? styles.saraMessage : styles.userMessage
-    ]}>
-      <View style={[
-        styles.messageBubble,
-        isSara ? styles.saraBubble : styles.userBubble
-      ]}>
-        <Text style={[
-          styles.messageText,
-          isSara ? styles.saraText : styles.userText
-        ]}>
-          {item.content}
+  const simulateSaraMessage = (message) => {
+    let currentText = "";
+    setIsTyping(true);
+
+    const newMessage = {
+      ...message,
+      content: "",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+    scrollToBottom();
+
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < message.content.length) {
+        currentText += message.content[i];
+        updateLastMessage(currentText);
+        i++;
+      } else {
+        clearInterval(interval);
+        setIsTyping(false);
+        setCurrentSaraIndex((prev) => prev + 1);
+      }
+    }, 40);
+  };
+
+  const updateLastMessage = (newContent) => {
+    setMessages((prev) => {
+      const updated = [...prev];
+      updated[updated.length - 1] = {
+        ...updated[updated.length - 1],
+        content: newContent,
+      };
+      return updated;
+    });
+    scrollToBottom();
+  };
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  const renderMessage = ({ item }) => {
+    const isSara = item.role === "sara";
+
+    return (
+      <View
+        style={[
+          styles.messageContainer,
+          isSara ? styles.saraMessage : styles.userMessage,
+        ]}
+      >
+        <View
+          style={[
+            styles.messageBubble,
+            isSara ? styles.saraBubble : styles.userBubble,
+          ]}
+        >
+          <Text
+            style={[
+              styles.messageText,
+              isSara ? styles.saraText : styles.userText,
+            ]}
+          >
+            {item.content}
+          </Text>
+        </View>
+        <Text style={styles.timestamp}>
+          {new Date(item.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </Text>
       </View>
-      <Text style={styles.timestamp}>
-        {new Date(item.timestamp).toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })}
-      </Text>
-    </View>
-  );
-};
+    );
+  };
 
-return (
-  <View style={styles.container}>
-    {/* Fondo de Sara con gradiente */}
-    {backgroundImage && (
-      <Image 
-        source={backgroundImage} 
-        style={styles.backgroundImage} 
-        resizeMode="contain"
-      />
-    )}
-    
-    {/* Lista de mensajes con altura definida */}
-    <View style={styles.messagesContainer}>
+  const isFinalStep = currentSaraIndex >= 7;
+
+  return (
+  <SafeAreaView style={styles.safeArea}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      {/* Fondo */}
+      {backgroundImage && (
+        <Image source={backgroundImage} style={styles.backgroundImage} resizeMode="contain" />
+      )}
+
+      {/* Lista de mensajes */}
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={[...messages]} // invertir datos
         renderItem={renderMessage}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.messagesList}
         showsVerticalScrollIndicator={false}
-        style={styles.flatList}
+        // inverted // mensajes de abajo hacia arriba
       />
-    </View>
 
-    {/* Indicador de typing */}
-    {isTyping && (
-      <View style={styles.typingContainer}>
-        <View style={styles.typingDots}>
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
+      {/* Input o botón continuar */}
+      {!isFinalStep ? (
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Escribe un mensaje..."
+              placeholderTextColor="#999"
+              multiline
+              maxLength={1000}
+            />
+            <TouchableOpacity
+              style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+              onPress={handleSend}
+              disabled={!inputText.trim()}
+            >
+              <Ionicons
+                name="send"
+                size={24}
+                color={!inputText.trim() ? "#ccc" : "#007AFF"}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-        <Text style={styles.typingText}>Sara está escribiendo...</Text>
-      </View>
-    )}
-
-    {/* Input de mensaje estilo WhatsApp */}
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.inputContainer}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.textInput}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="Escribe un mensaje..."
-          placeholderTextColor="#999"
-          multiline
-          maxLength={1000}
-          numberOfLines={4}
-        />
-        <TouchableOpacity 
-          style={[
-            styles.sendButton, 
-            !inputText.trim() && styles.sendButtonDisabled
-          ]} 
-          onPress={handleSend}
-          disabled={!inputText.trim()}
-        >
-          <Ionicons 
-            name="send" 
-            size={24} 
-            color={!inputText.trim() ? "#ccc" : "#007AFF"} 
-          />
+      ) : (
+        <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+          <Text style={styles.continueButtonText}>Continuar</Text>
         </TouchableOpacity>
-      </View>
+      )}
     </KeyboardAvoidingView>
-  </View>
+  </SafeAreaView>
 );
-}
+};
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    width: "100%"
+    // backgroundColor: "#1F2937", // mismo fondo que tu input
+  },
   container: {
     flex: 1,
-    backgroundColor: '#111827',
+    width: "100%",
+    // alignItems: "center",
+    justifyContent: "center"
   },
   backgroundImage: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    opacity: 0.05,
-    zIndex: -1,
-  },
-  messagesContainer: {
-    flex: 1,
-    maxHeight: '78%', // Altura definida para la ventana de chat
-  },
-  flatList: {
-    flex: 1,
+    position: "absolute",
+    width: "60%",
+    height: "60%",
+    top: -30,
+    opacity: 0.8,
+    zIndex: 0,
   },
   messagesList: {
-    padding: 16,
-    paddingBottom: 20,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    flexGrow: 1,
+    height: "88%",
+    justifyContent: "flex-end",
   },
-  messageContainer: {
-    marginBottom: 16,
-    maxWidth: '85%',
-  },
-  saraMessage: {
-    alignSelf: 'flex-start',
-  },
-  userMessage: {
-    alignSelf: 'flex-end',
-  },
+  messageContainer: { marginBottom: 16, maxWidth: "85%" },
+  saraMessage: { alignSelf: "flex-start" },
+  userMessage: { alignSelf: "flex-end" },
   messageBubble: {
     padding: 14,
     borderRadius: 20,
     marginBottom: 6,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
   },
   saraBubble: {
-    backgroundColor: '#374151',
+    backgroundColor: "#374151",
     borderBottomLeftRadius: 6,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
   },
   userBubble: {
-    backgroundColor: '#007AFF',
-    borderBottomLeftRadius: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: "#007AFF",
     borderBottomRightRadius: 6,
   },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 22,
-    letterSpacing: 0.2,
-  },
-  saraText: {
-    color: '#F3F4F6',
-  },
-  userText: {
-    color: '#FFFFFF',
-  },
+  messageText: { fontSize: 16, lineHeight: 22, letterSpacing: 0.2 },
+  saraText: { color: "#F3F4F6" },
+  userText: { color: "#FFFFFF" },
   timestamp: {
     fontSize: 11,
-    color: '#9CA3AF',
-    alignSelf: 'flex-end',
+    color: "#9CA3AF",
+    alignSelf: "flex-end",
     marginTop: 2,
   },
-  typingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: 'rgba(31, 41, 55, 0.8)',
-    marginHorizontal: 16,
-    borderRadius: 20,
-    marginBottom: 8,
-  },
-  typingDots: {
-    flexDirection: 'row',
-    marginRight: 8,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#9CA3AF',
-    marginHorizontal: 2,
-  },
-  typingText: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    fontStyle: 'italic',
-  },
   inputContainer: {
-    backgroundColor: '#1F2937',
     borderTopWidth: 1,
-    borderTopColor: '#374151',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderTopColor: "#374151",
+    padding: 8,
+    backgroundColor: "#1F2937",
+    borderRadius: 8,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: '#374151',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    backgroundColor: "#374151",
     borderRadius: 25,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -259,29 +296,35 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    color: '#F3F4F6',
+    color: "#F3F4F6",
     fontSize: 16,
     maxHeight: 120,
     paddingVertical: 8,
     paddingRight: 12,
-    textAlignVertical: 'center',
+    textAlignVertical: "top",
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginLeft: 8,
   },
-  sendButtonDisabled: {
-    opacity: 0.5,
+  sendButtonDisabled: { opacity: 0.5 },
+  continueButton: {
+    backgroundColor: "#007AFF",
+    margin: 16,
+    paddingVertical: 14,
+    borderRadius: 25,
+    alignItems: "center",
   },
-  sendButtonText: {
-    color: 'white',
-    fontWeight: '600',
+  continueButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
+
 
 export default ChatComponent;

@@ -40,8 +40,6 @@ export const InitializationProvider = ({ children }) => {
       setIsLoading(true);
 
       const storage = await getStorage();
-      console.log("Storage on init:", storage);
-      
       if (storage && storage.app_initialized && !!storage.device_id) {
         setIsAppInitialized(true);
         setInitializationStep("app_ready");
@@ -136,6 +134,17 @@ export const InitializationProvider = ({ children }) => {
     }
   };
 
+  const requestUserToken = async (formData) => {
+    try {
+      const {data} = await axiosInstance.post(`/system/register_user`, formData);
+      console.log(data);
+      return { success: false, message: "No se recibió el token desde el servidor." };
+    } catch (error) {
+      console.error("Error al solicitar token:", error);
+      return { success: false, message: "Error en la solicitud del token." };
+    }
+  };
+
   const value = {
     isLoading,
     isAppInitialized,
@@ -146,6 +155,7 @@ export const InitializationProvider = ({ children }) => {
     lan,
     language,
     handleChangeLanguage,
+    requestUserToken
   };
 
   return (
