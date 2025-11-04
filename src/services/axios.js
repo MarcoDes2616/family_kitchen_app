@@ -1,9 +1,13 @@
 import axios from 'axios';
-// import { EXPO_PUBLIC_API_LOCAL, EXPO_PUBLIC_API_PROD } from '@env';
+import { EXPO_PUBLIC_API_LOCAL, EXPO_PUBLIC_API_PROD } from '@env';
 import authService from './authServices';
 
+console.log('EXPO_PUBLIC_API_LOCAL', EXPO_PUBLIC_API_LOCAL);
+console.log('EXPO_PUBLIC_API_PROD', EXPO_PUBLIC_API_PROD);
+
+
 const axiosInstance = axios.create({
-  baseURL: "http://192.168.1.113:8080/api/v1",
+  baseURL: EXPO_PUBLIC_API_LOCAL,
   headers: {
     'Content-Type': 'application/json'
   },

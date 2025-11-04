@@ -14,6 +14,7 @@ export const useDeviceId = () => {
         
         // Para Android
         if (Platform.OS === 'android') {
+          
           identifier = await Application.getAndroidId();
         } 
         // Para iOS

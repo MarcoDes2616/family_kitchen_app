@@ -63,6 +63,7 @@ export const InitializationProvider = ({ children }) => {
 
   const fetchDeviceId = async (id) => {
     try {
+      
       const {data} = await axiosInstance.get(`/system/check_device/${id}`);
       if(data.success){
         setInitializationStep("app_ready");

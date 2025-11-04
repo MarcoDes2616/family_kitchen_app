@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,15 +9,15 @@ import {
 } from "react-native";
 import axiosInstance from "../services/axios";
 import InitializationContext from "../context/InitializationContext";
-import ChatComponent from "./chatComponents/ChatComponent";
 
+import { googleSignIn } from '../services/firebase';
 const InitialSetup = () => {
   const { handleChangeLanguage, deviceId, language, lan } = useContext(
     InitializationContext
   );
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    username: "",
+    username:  null,
     email: "",
     language: language || "en",
     device_id: deviceId || null,
@@ -29,20 +29,7 @@ const InitialSetup = () => {
       return;
     }
     if (step === 2) {
-      // Validar username y email
-      if (!formData.username || !formData.email) {
-        Alert.alert("Error", "Por favor completa todos los campos");
-        return;
-      }
-      setStep(2);
-      await sendAccessToken();
-    } else if (step === 2) {
-      // Validar token
-      if (!formData.accessToken) {
-        Alert.alert("Error", "Por favor ingresa el token de acceso");
-        return;
-      }
-      await verifyAccessToken();
+      handleGoogleSignIn()
     }
   };
 
@@ -58,6 +45,21 @@ const InitialSetup = () => {
       Alert.alert("Error", "No se pudo enviar el token. Intenta nuevamente.");
     }
     setIsLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await googleSignIn();
+      // El inicio de sesión con Google fue exitoso
+      console.log("Google Sign-In Success:", result.user);
+      setFormData({ ...formData, email: result.user.email, username: result.user.displayName });
+      setStep(3);
+    } catch (error) {
+      // Hubo un error al iniciar sesión con Google
+      console.error("Google Sign-In Error:", error);
+      Alert.alert("Error", "No se pudo iniciar sesión con Google.");
+    }
+    
   };
 
   const verifyAccessToken = async () => {
@@ -145,10 +147,15 @@ const InitialSetup = () => {
 
       case 2:
         return (
-          <ChatComponent
-            formData={formData}
-            setFormData={setFormData}
-          />
+          <View style={styles.stepContainer}>
+            <Text style={styles.title}>Sign in with Google</Text>
+            <TouchableOpacity style={styles.button} onPress={handleNext}>
+              <Text style={styles.buttonText}>
+                Sign in with Google
+              </Text>
+            </TouchableOpacity>
+          </View>
+
         );
     }
   };
