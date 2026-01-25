@@ -11,7 +11,7 @@ import AppContent from "./src/screens/AppContent";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const App = () => {
-  const scheme = useColorScheme(); // puede ser 'light' o 'dark'
+  const scheme = useColorScheme();
 
   const isDarkMode = scheme === "dark";
 
